@@ -245,7 +245,7 @@ var KN={Visit:'RC Visits',Incident:'Incidents',Approval:'Product Approvals',Chec
 var STN={ok:'Approved',alert:'Flagged',ask:'Pending review',pause:'On hold'};
 function tile(g,c,size){return '<span class="tile t-'+c+(size?' '+size:'')+'" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#g-'+g+'"/></svg></span>'}
 var PHOTO={hollow:'market-produce',kestrel:'scene-kitchen-prep',harbor:'restaurant-meat-burger',bloomfield:'restaurant-dairy-icecream',cloudberry:'restaurant-dairy-cafe',ember:'restaurant-meat-steak',butchers:'butcher-case',perla:'restaurant-meat-deli',silver:'restaurant-fish-sushi',brass:'restaurant-meat-lamb',gates:'bakery-challah',rivers:'restaurant-fish-branzino',vine:'restaurant-wine-bar',willow:'caterer-buffet'};
-var FACE={'Rabbi Dovid Stern':'rabbi-senior','Rabbi Meir Kaplan':'rabbi-greying','Rabbi Yaakov Feldman':'rabbi-dark-beard','Shloimy Weiss':'staff-office','Yossi Friedman':'rabbi-young','Avi Rosenberg':'staff-young'};
+var FACE={'Rabbi Dovid Stern':'rabbi-senior','Rabbi Meir Kaplan':'rabbi-greying','Rabbi Yaakov Feldman':'rabbi-dark-beard','Shloimy Weiss':'staff-office','Yossi Friedman':'rabbi-young','Avi Rosenberg':'staff-young','Chaim Perlow':'mashgiach-grey','Dovi Gluck':'mashgiach-auburn','Moshe Katzman':'mashgiach-black-beard','Naftali Berger':'mashgiach-stubble','Sruly Halpern':'mashgiach-glasses'};
 function pic(e,lg){return '<img alt="" src="photos/'+PHOTO[e.id]+(lg?'-lg':'')+'.webp">'}
 function estTile(e){return '<span class="thumb" aria-hidden="true">'+pic(e)+'</span>'}
 function face(n,size){var f=FACE[n];return '<span class="avatar'+(size?' '+size:'')+(f?' ph':'')+'" aria-hidden="true">'+(f?'<img alt="" src="photos/team-'+f+'.webp">':initials(n))+'</span>'}
