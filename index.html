@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>KIA OS Redesign Preview</title>
+<meta name="description" content="The current KIA OS next to a possible new design, on demo data.">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a short explainer and two switches (which device, which system) above one framed screen.
+   The framed screen is either a screenshot of the current system or the clickable new design. */
+:root{
+  --canvas:#FFFFFF; --app:#F2F2F7; --surface:#FFFFFF; --bar:rgba(255,255,255,.8);
+  --text:#1D1D1F; --text2:#5F5F64; --text3:#AEAEB2;
+  --sep:rgba(60,60,67,.16); --fill:rgba(118,118,128,.12); --fill2:rgba(118,118,128,.2);
+  --blue:#0066CC; --blue-fill:#0071E3; --red-text:#C4001A; --orange-text:#A84300;
+  --red:#FF3B30; --orange:#FF9500; --green:#34C759; --gray:#8E8E93;
+  --frame:rgba(0,0,0,.1); --seg:#FFFFFF; --shadow:0 30px 80px -24px rgba(0,0,0,.22);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --canvas:#111113; --app:#000000; --surface:#1C1C1E; --bar:rgba(28,28,30,.8);
+  --text:#F5F5F7; --text2:#A1A1A6; --text3:#636366;
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill2:rgba(118,118,128,.36);
+  --blue:#2997FF; --blue-fill:#0071E3; --red-text:#FF6961; --orange-text:#FFB340;
+  --frame:rgba(255,255,255,.16); --seg:#636366; --shadow:none; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --canvas:#111113; --app:#000000; --surface:#1C1C1E; --bar:rgba(28,28,30,.8);
+  --text:#F5F5F7; --text2:#A1A1A6; --text3:#636366;
+  --sep:rgba(84,84,88,.6); --fill:rgba(118,118,128,.24); --fill2:rgba(118,118,128,.36);
+  --blue:#2997FF; --blue-fill:#0071E3; --red-text:#FF6961; --orange-text:#FFB340;
+  --frame:rgba(255,255,255,.16); --seg:#636366; --shadow:none; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--canvas);color:var(--text);font-family:var(--font);font-size:1.0625rem;line-height:1.35;letter-spacing:-.012em;-webkit-font-smoothing:antialiased;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:40px 80px}
+a{color:inherit;text-decoration:none}
+button,select,input{font:inherit;color:inherit;letter-spacing:inherit}
+button{border:0;background:none;cursor:pointer;padding:0;text-align:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+svg{display:block;flex:none}
+h1,h2,p{margin:0}
+
+.shell{max-width:1240px;margin:0 auto}
+.intro{max-width:760px}
+.intro h1{font-size:1.75rem;line-height:1.15;font-weight:700;letter-spacing:-.025em;text-wrap:balance}
+.intro p{color:var(--text2);margin-top:10px}
+.intro p b{color:var(--text);font-weight:600}
+.controls{display:flex;flex-wrap:wrap;gap:12px;margin:26px 0 12px}
+.note{color:var(--text2);font-size:.9375rem;min-height:2.6em;max-width:760px;margin-bottom:18px}
+.note b{color:var(--text);font-weight:600}
+
+/* segmented control */
+.seg{display:inline-flex;padding:2px;border-radius:10px;background:var(--fill);max-width:100%}
+.seg button{min-height:36px;padding:0 16px;border-radius:8px;font-size:.9375rem;font-weight:500;position:relative;text-align:center;white-space:nowrap}
+.seg button::after{content:"";position:absolute;inset:-4px 0}
+.seg button[aria-pressed="true"]{background:var(--seg);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+.seg.full{display:flex;margin-top:28px}
+.seg.full button{flex:1}
+
+/* stage */
+.stage{display:grid;gap:28px;align-items:start}
+.stage.both{grid-template-columns:1fr 1fr}
+.pane{min-width:0}
+.pane > h2{font-size:.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);margin:0 4px 10px}
+.window{border-radius:14px;overflow:hidden;background:var(--app);box-shadow:var(--shadow),0 0 0 1px var(--frame);container-type:inline-size;position:relative}
+.chrome{height:36px;display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--surface);border-bottom:1px solid var(--sep)}
+.chrome i{width:11px;height:11px;border-radius:50%;background:var(--fill2)}
+.shot{max-height:min(1100px,82vh);overflow:auto;background:#fff}
+.shot img{display:block;width:100%;max-width:100%;height:auto}
+.screen > img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+#app{min-height:640px}
+
+/* top bar */
+.topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:8px 16px;background:var(--bar);border-bottom:1px solid var(--sep);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);position:sticky;top:0;z-index:5}
+.brand{font-weight:600;letter-spacing:-.02em}
+.tabs{display:flex;padding:3px;border-radius:999px;background:var(--fill)}
+.tabs button{min-height:44px;padding:0 18px;border-radius:999px;font-weight:500;white-space:nowrap;text-align:center}
+.tabs button[aria-current]{background:var(--seg);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+.tools{display:flex;justify-content:flex-end;align-items:center;gap:2px}
+.icon-btn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;position:relative}
+.icon-btn:hover{background:var(--fill)}
+.badge{position:absolute;top:4px;inset-inline-end:2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#D70015;color:#fff;font-size:.6875rem;font-weight:700;display:grid;place-items:center;letter-spacing:0}
+.me{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;font-weight:600;color:#fff;background:linear-gradient(#6E7380,#5A5F6B);letter-spacing:0}
+
+/* page */
+.col{max-width:720px;margin:0 auto;padding:36px 20px 72px}
+.eyebrow{font-size:.8125rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--text2);margin-bottom:4px}
+.title{font-size:2.125rem;line-height:1.1;font-weight:700;letter-spacing:-.025em}
+.titlebar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 16px}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--blue);margin:-10px 0 4px -2px}
+.headline{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin-top:8px;color:var(--text2)}
+.acts{display:flex;flex-wrap:wrap;gap:10px}
+.acts.below{margin-top:20px}
+.act{min-height:44px;padding:0 20px;border-radius:999px;font-size:1rem;font-weight:600;background:var(--fill2);white-space:nowrap}
+.act.primary{background:var(--blue-fill);color:#fff}
+.act.icon{width:44px;padding:0;display:grid;place-items:center}
+.sec{display:flex;align-items:center;gap:8px;margin:36px 4px 10px;min-height:36px}
+.sec h2{font-size:1.25rem;font-weight:600;letter-spacing:-.02em}
+.sec .n{font-size:1.25rem;color:var(--text2)}
+.sec .end{margin-inline-start:auto}
+.group{background:var(--surface);border-radius:14px;overflow:hidden}
+.row{display:flex;align-items:center;gap:14px;padding:11px 16px;min-height:60px;position:relative;width:100%}
+.row + .row::before{content:"";position:absolute;top:0;inset-inline:var(--inset,16px) 0;height:1px;background:var(--sep)}
+button.row:hover{background:var(--fill)}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:500}
+.row .d{color:var(--text2);font-size:.9375rem;margin-top:1px}
+.needs .row{--inset:52px}
+.people .row{--inset:66px}
+.sym{width:22px;height:22px;flex:none}
+.state{display:inline-flex;align-items:center;gap:7px}
+.state .sym{width:16px;height:16px}
+.state.bad{color:var(--red-text);font-weight:500}
+.state.warn{color:var(--orange-text);font-weight:500}
+.trail{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:.9375rem;flex:none;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chev{color:var(--text3)}
+.pill{min-height:36px;padding:0 16px;border-radius:999px;background:var(--fill);font-size:.9375rem;font-weight:600;white-space:nowrap;flex:none;position:relative;display:inline-flex;align-items:center;gap:6px}
+.pill::after{content:"";position:absolute;inset:-4px 0}
+.pill:hover{background:var(--fill2)}
+.pill.primary{background:var(--blue-fill);color:#fff}
+.avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:.8125rem;font-weight:600;color:#fff;background:linear-gradient(#6E7380,#5A5F6B);flex:none;letter-spacing:0}
+.more{color:var(--blue)}
+.empty{padding:18px 16px;color:var(--text2)}
+.kv .row{min-height:52px}
+.kv .k{flex:none;width:150px;font-weight:500}
+.kv .v{flex:1;min-width:0;color:var(--text2)}
+.kv .v b{color:var(--text);font-weight:400}
+.tools-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.field{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:12px;background:var(--fill)}
+.field:focus-within{outline:3px solid var(--blue);outline-offset:2px}
+.field svg{color:var(--text2)}
+.field input{flex:1;min-width:0;border:0;background:none;outline:0;min-height:44px}
+.field input::placeholder{color:var(--text2)}
+.popup{min-height:44px;padding:0 34px 0 14px;border-radius:12px;border:0;background:var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14'%3E%3Cpath d='M1.5 5 5 1.5 8.500 5M1.500 9 5 12.500 8.500 9' fill='none' stroke='%238E8E93' stroke-width='1.600' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;appearance:none;-webkit-appearance:none;font-weight:500;max-width:100%}
+
+/* menus */
+.menu{position:absolute;z-index:20;min-width:230px;max-width:calc(100% - 24px);background:var(--surface);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.2),0 0 0 1px var(--frame);overflow:hidden;padding:6px 0}
+.menu .mh{padding:8px 16px 6px;color:var(--text2);font-size:.8125rem}
+.menu button{display:flex;width:100%;min-height:44px;align-items:center;padding:0 16px;gap:10px}
+.menu button:hover{background:var(--fill)}
+.menu hr{border:0;border-top:1px solid var(--sep);margin:6px 0}
+.menu .msg{padding:10px 16px;max-width:320px}
+.menu .msg .d{color:var(--text2);font-size:.9375rem}
+.toast.fixed{position:fixed;bottom:24px;font-family:var(--font);line-height:1.3}
+.toast{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);z-index:30;background:var(--text);color:var(--canvas);padding:10px 16px;border-radius:999px;font-size:.9375rem;font-weight:500;max-width:calc(100% - 32px);text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+
+@container (max-width:900px){
+  .topbar{grid-template-columns:1fr auto;padding:6px 10px}
+  .tabs{grid-column:1/-1;grid-row:2;overflow-x:auto}
+  .tabs button{flex:1 1 auto;padding:0 6px;font-size:.9375rem}
+  .col{padding:26px 14px 56px}
+}
+@container (max-width:520px){
+  .tabs button{font-size:.8125rem;padding:0 3px}
+  .title{font-size:1.875rem}
+  .needs .row{flex-wrap:wrap}
+  .needs .row .main{flex-basis:calc(100% - 36px)}
+  .needs .pill{margin-inline-start:36px}
+  .wrap .row{flex-wrap:wrap;gap:2px 14px}
+  .wrap .main{flex-basis:100%}
+  .wrap .trail .chev{display:none}
+  .kv .k{width:100%}
+  .kv .row{flex-wrap:wrap;gap:0 14px;padding-inline-end:36px}
+  .kv .row > .chev{position:absolute;inset-inline-end:16px;top:50%;margin-top:-7px}
+  .seg.full button{padding:0 4px}
+}
+
+/* phone */
+.phone-wrap{display:flex;justify-content:center;padding:8px 0}
+.phone{width:min(414px,100%);padding:12px;border-radius:68px;background:#0B0B0D;box-shadow:0 40px 90px -24px rgba(0,0,0,.35),0 0 0 1.5px #3A3A3C inset}
+.screen{position:relative;border-radius:56px;overflow:hidden;background:var(--app);aspect-ratio:390/844}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding:0 16px 120px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.status{height:54px;display:flex;align-items:center;justify-content:space-between;padding:6px 18px 0 28px;font-weight:600;font-size:1rem;position:relative}
+.status .island{position:absolute;left:50%;top:11px;transform:translateX(-50%);width:120px;height:35px;border-radius:20px;background:#000}
+.status .sys{display:flex;gap:6px;align-items:center}
+.p-title{font-size:2.125rem;line-height:1.1;font-weight:700;letter-spacing:-.025em;margin:14px 4px 0}
+.shift{background:var(--surface);border-radius:22px;padding:18px 20px 20px;margin-top:20px}
+.shift .l{color:var(--text2);font-size:.9375rem}
+.shift .timer{font-size:3.5rem;line-height:1.05;font-weight:600;letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin-top:4px}
+.p-sec{font-size:1.375rem;font-weight:700;letter-spacing:-.022em;margin:28px 4px 10px}
+.phone .group{border-radius:22px}
+.phone .row{min-height:64px;--inset:54px}
+.muted .t{color:var(--text2)}
+.btns{display:grid;gap:10px;margin-top:24px}
+.btn{min-height:50px;border-radius:999px;font-weight:600;letter-spacing:-.02em;text-align:center;background:var(--fill2)}
+.btn.text{min-height:44px;color:var(--blue);font-weight:400;background:none}
+.tabbar{position:absolute;left:20px;right:20px;bottom:24px;height:64px;border-radius:32px;display:grid;grid-template-columns:repeat(4,1fr);padding:4px;background:var(--bar);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);box-shadow:0 8px 28px rgba(0,0,0,.14),0 0 0 .5px var(--frame)}
+.tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:28px;font-size:.625rem;font-weight:500;letter-spacing:0}
+.tabbar button[aria-current]{background:var(--fill);color:var(--blue);font-weight:600}
+.home{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:36%;height:5px;border-radius:3px;background:var(--text)}
+
+.foot{max-width:760px;margin-top:48px;color:var(--text2);font-size:.9375rem}
+@media (max-width:1179px){ #modeBoth{display:none} .stage.both{grid-template-columns:1fr} }
+@media (prefers-reduced-motion: no-preference){ .pill,.act,.row,.icon-btn{transition:background-color .12s} }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="chev" viewBox="0 0 8 14"><path d="M1.2 1.2 6.8 7l-5.6 5.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="s-alert" viewBox="0 0 22 22"><path d="M7.4 1.5h7.2l5.9 5.9v7.2l-5.9 5.9H7.4l-5.9-5.9V7.4Z" fill="var(--red)"/><path d="M11 6v6.2" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="11" cy="15.6" r="1.3" fill="#fff"/></symbol>
+  <symbol id="s-clock" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="var(--orange)"/><path d="M11 5.8V11l3.4 2.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="s-ask" viewBox="0 0 22 22"><rect x="1" y="1" width="20" height="20" rx="6" fill="var(--gray)"/><path d="M8.2 8.6a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1-1.5 2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="16.3" r="1.2" fill="#fff"/></symbol>
+  <symbol id="s-ok" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="var(--green)"/><path d="m6.4 11.4 3.1 3.100 6.100-6.500" fill="none" stroke="#fff" stroke-width="2.300" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="s-pause" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="var(--gray)"/><path d="M8.300 7v8M13.700 7v8" stroke="#fff" stroke-width="2.300" stroke-linecap="round"/></symbol>
+  <symbol id="i-search" viewBox="0 0 20 20"><circle cx="8.6" cy="8.6" r="5.9" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m13.2 13.2 4.3 4.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-msg" viewBox="0 0 24 24"><path d="M12 4c4.7 0 8.5 3.200 8.500 7.200s-3.800 7.200-8.500 7.200c-.900 0-1.800-.100-2.600-.400L5.200 20l.900-3.400c-1.600-1.300-2.600-3.200-2.600-5.400C3.500 7.200 7.300 4 12 4Z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.500" cy="12" r="1.900" fill="currentColor"/><circle cx="12" cy="12" r="1.900" fill="currentColor"/><circle cx="18.500" cy="12" r="1.900" fill="currentColor"/></symbol>
+</svg>
+
+<div class="shell">
+  <header class="intro">
+    <h1>KIA OS: the current system and a possible new design</h1>
+    <p>Both sides show the same demo agency with the same information. The new design is clickable: use its five sections, open an establishment or a person, and try the buttons. <b>The question for you: would you know what to do on each screen without being shown?</b></p>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Which app">
+      <button id="devOffice" aria-pressed="true">Office</button>
+      <button id="devPhone" aria-pressed="false">Mashgiach</button>
+    </div>
+    <div class="seg" role="group" aria-label="Which system">
+      <button id="modeNew" aria-pressed="true">New Design</button>
+      <button id="modeOld" aria-pressed="false">Current System</button>
+      <button id="modeBoth" aria-pressed="false">Side by Side</button>
+    </div>
+  </div>
+  <p class="note" id="note"></p>
+
+  <div class="stage" id="stage">
+    <section class="pane" id="oldPane" hidden>
+      <h2 id="oldH">Current system (screenshot, scroll inside it)</h2>
+      <div class="window" id="oldWin"><div class="chrome" aria-hidden="true"><i></i><i></i><i></i></div><div class="shot" id="shot"><img id="oldImg" alt="" src="old/home.jpg"></div></div>
+      <div class="phone-wrap" id="oldPhoneWrap" hidden><div class="phone"><div class="screen"><img alt="Screenshot of the current system: the mashgiach app before clocking in" src="old/m.jpg"></div></div></div>
+    </section>
+    <section class="pane" id="newPane">
+      <h2>New design (clickable)</h2>
+      <div class="window" id="win"><div class="chrome" aria-hidden="true"><i></i><i></i><i></i></div><div id="app"></div></div>
+      <div class="phone-wrap" id="phoneWrap" hidden></div>
+    </section>
+  </div>
+
+  <p class="foot">The agency, establishments and people shown are KIA’s public demo data. None of it is a real agency, business, product, phone number or person. The current-system screenshots were taken from that demo on November 11, 2026, late in the evening, which is why nobody is on shift.</p>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+var sym=function(n,label){return '<svg class="sym" '+(label?'role="img" aria-label="'+label+'"':'aria-hidden="true"')+'><use href="#s-'+n+'"/></svg>'};
+var chev='<svg class="chev" width="8" height="14" aria-hidden="true"><use href="#chev"/></svg>';
+var SYMLABEL={alert:'Urgent',clock:'Needs attention',ask:'Waiting for your answer',ok:'Fine',pause:'On hold'};
+
+/* ───── demo data (KIA's public demo agency) ───── */
+var E=[
+ {id:'hollow',name:'Hollow Oak Market',type:'Market',street:'1205 Avenue J',city:'Brooklyn',st:'alert',stText:'Flagged',hours:'8:00 AM to 9:00 PM',rc:'Rabbi Meir Kaplan',mash:['Moshe Katzman','Dovi Gluck'],visit:'The last one was November 7. The next is due in 10 days.'},
+ {id:'kestrel',name:'Kestrel Farms Commissary',type:'Parve kitchen',street:'240 Moonachie Ave',city:'Moonachie',st:'ask',stText:'Pending review',hours:null,rc:'Rabbi Meir Kaplan',mash:[],visit:'None yet.'},
+ {id:'harbor',name:'Harborview Summer Grill',type:'Meat restaurant',street:'311 Ocean Ave',city:'Lakewood',st:'pause',stText:'On hold',hours:null,rc:'Rabbi Meir Kaplan',mash:[],visit:'None scheduled while on hold.'},
+ {id:'bloomfield',name:'Bloomfield Creamery',type:'Dairy restaurant',street:'1889 Coney Island Ave',city:'Brooklyn',st:'ok',stText:'Approved',hours:'12:00 PM to 10:00 PM',rc:'Rabbi Meir Kaplan',mash:['Chaim Perlow','Avi Rosenberg'],visit:'The last one was November 7.'},
+ {id:'cloudberry',name:'Cloudberry Dairy Café',type:'Dairy restaurant',street:'1023 Kings Hwy',city:'Brooklyn',st:'ok',stText:'Approved',hours:'7:00 AM to 9:00 PM',rc:'Rabbi Meir Kaplan',mash:['Avi Rosenberg','Chaim Perlow'],visit:'The next is due in 16 days.'},
+ {id:'ember',name:'Golden Ember Grill House',type:'Meat restaurant',street:'63-42 108th St',city:'Forest Hills',st:'ok',stText:'Approved',hours:'12:00 PM to 11:00 PM',rc:'Rabbi Meir Kaplan',mash:['Sruly Halpern','Shloimy Weiss'],visit:'Every 2 weeks. The last one was November 9. The next is due in 12 days.',std:'Glatt',setup:{loc:'MG-2692, expires July 29, 2027',onb:'5 of 12 done',web:'Listed',mail:'Off'}},
+ {id:'butchers',name:'Maple Glen Glatt Butchers',type:'Butcher',street:'4811 13th Ave',city:'Brooklyn',st:'ok',stText:'Approved',hours:'6:00 AM to 2:00 PM',rc:'Rabbi Meir Kaplan',mash:['Dovi Gluck','Chaim Perlow'],visit:'The last one was November 4.'},
+ {id:'perla',name:'Perla’s Deli & Provisions',type:'Deli',street:'72-38 Main St',city:'Flushing',st:'ok',stText:'Approved',hours:'10:00 AM to 8:00 PM',rc:'Rabbi Meir Kaplan',mash:['Moshe Katzman','Sruly Halpern'],visit:'On schedule.'},
+ {id:'silver',name:'Silver Fig Sushi',type:'Sushi restaurant',street:'1410 Avenue M',city:'Brooklyn',st:'ok',stText:'Approved',hours:'11:00 AM to 9:00 PM',rc:'Rabbi Meir Kaplan',mash:['Moshe Katzman'],visit:'The next is due in 16 days.'},
+ {id:'brass',name:'The Brass Pomegranate',type:'Meat restaurant',street:'212 W 45th St',city:'New York',st:'ok',stText:'Approved',hours:'11:00 AM to 11:00 PM',rc:'Rabbi Yaakov Feldman',mash:['Yossi Friedman','Naftali Berger'],visit:'The last one was November 10. The next is due in 13 days.'},
+ {id:'gates',name:'Twelve Gates Bakery',type:'Bakery',street:'455 Central Ave',city:'Cedarhurst',st:'ok',stText:'Approved',hours:null,rc:'Rabbi Yaakov Feldman',mash:['Dovi Gluck','Avi Rosenberg'],visit:'The last one was November 7.'},
+ {id:'rivers',name:'Two Rivers Fish House',type:'Fish restaurant',street:'969 W Beech St',city:'Long Beach',st:'ok',stText:'Approved',hours:'11:00 AM to 9:00 PM',rc:'Rabbi Meir Kaplan',mash:['Sruly Halpern'],visit:'On schedule.'},
+ {id:'vine',name:'Vine & Fig Wine Room',type:'Wine room',street:'138 Cedarhurst Ave',city:'Cedarhurst',st:'ok',stText:'Approved',hours:'5:00 PM to 11:00 PM',rc:'Rabbi Yaakov Feldman',mash:['Yossi Friedman'],visit:'The next is due in 18 days.'},
+ {id:'willow',name:'Willow & Sage Catering',type:'Caterer',street:'5620 New Utrecht Ave',city:'Brooklyn',st:'ok',stText:'Approved',hours:null,rc:'Rabbi Meir Kaplan',mash:['Shloimy Weiss'],visit:'The last one was November 6.'}
+];
+var byId={};E.forEach(function(e){byId[e.id]=e});
+var P=[
+ {name:'Rabbi Dovid Stern',role:'Owner',you:true},
+ {name:'Rabbi Meir Kaplan',role:'Coordinator'},
+ {name:'Rabbi Yaakov Feldman',role:'Coordinator'},
+ {name:'Avi Rosenberg',role:'Mashgiach',phone:'(718) 555-0143',kia:true},
+ {name:'Chaim Perlow',role:'Mashgiach',phone:'(929) 555-0122',kia:false},
+ {name:'Dovi Gluck',role:'Mashgiach',phone:'(347) 555-0189',kia:true},
+ {name:'Moshe Katzman',role:'Mashgiach',phone:'(646) 555-0177',kia:true},
+ {name:'Naftali Berger',role:'Mashgiach',kia:true},
+ {name:'Shloimy Weiss',role:'Senior mashgiach',kia:true},
+ {name:'Sruly Halpern',role:'Mashgiach',kia:true},
+ {name:'Yossi Friedman',role:'Senior mashgiach',kia:true}
+];
+var SH=[ /* tomorrow's shifts */
+ ['5:30 AM to 1:00 PM','Dovi Gluck','gates'],['6:00 AM to 2:00 PM','Chaim Perlow','butchers'],['7:00 AM to 2:30 PM','Avi Rosenberg','cloudberry'],
+ ['10:00 AM to 5:00 PM','Shloimy Weiss','willow'],['10:30 AM to 5:00 PM','Yossi Friedman','brass'],
+ ['11:00 AM to 8:30 PM','Moshe Katzman','silver'],['12:00 PM to 11:00 PM','Sruly Halpern','ember'],['4:45 PM to 11:00 PM','Naftali Berger','brass']];
+var DAYS=[['Friday, November 13','5 shifts','Community Siyum, 6:30 PM'],['Sunday, November 15','9 shifts','Hollander Sheva Brachos, 6:30 PM'],['Monday, November 16','8 shifts',''],['Tuesday, November 17','9 shifts',''],['Wednesday, November 18','13 shifts','',{s:'clock',t:'1 open shift',c:'warn'}]];
+var EV=[
+ ['Community Siyum','Friday, November 13, 6:30 PM · Willow & Sage Catering · 120 guests',{s:'ok',t:'Scheduled'}],
+ ['Hollander Sheva Brachos','Sunday, November 15, 6:30 PM · Private home, Flatbush · 60 guests',{s:'ok',t:'Approved'}],
+ ['Goldberg Bar Mitzvah','Thursday, November 19, 6:30 PM · Ateres Chaya Hall · 180 guests',{s:'ask',t:'Waiting for approval'}],
+ ['Adler–Reisman Wedding','Tuesday, November 24, 6:30 PM · The Grand Cedar · 420 guests',{s:'ok',t:'Scheduled'}]];
+var DUE=[['hollow','10 days'],['ember','12 days'],['brass','13 days'],['silver','16 days'],['cloudberry','16 days'],['vine','18 days']];
+var R=[ /* records, newest first */
+ {d:'Today',k:'Incident',t:'Equipment incident',s:'A new countertop fryer was delivered without approval.',loc:'ember',who:'Sruly Halpern',st:{s:'alert',t:'Open',c:'bad'}},
+ {d:'Today',k:'Approval',t:'Prepared Horseradish Sauce',s:'Product approval',loc:'brass',who:'Yossi Friedman',st:{s:'ask',t:'Pending'}},
+ {d:'Today',k:'Checklist',t:'Critical checklist answer',s:'One case arrived without a legible hechsher stamp.',loc:'silver',who:'Moshe Katzman',st:{s:'alert',t:'Needs review',c:'bad'}},
+ {d:'Today',k:'Checklist',t:'Critical checklist answer',s:'The seal on the back freezer looked disturbed.',loc:'perla',who:'Moshe Katzman',st:{s:'alert',t:'Needs review',c:'bad'}},
+ {d:'Today',k:'Checklist',t:'Critical checklist answer',s:'The certificate frame was taken down during painting.',loc:'brass',who:'Yossi Friedman',st:{s:'alert',t:'Needs review',c:'bad'}},
+ {d:'November 10',k:'Incident',t:'Unapproved product',s:'Two cases of non-certified yogurt in the cholov yisroel dairy case.',loc:'hollow',who:'Dovi Gluck',st:{s:'alert',t:'Open',c:'bad'}},
+ {d:'November 10',k:'Visit',t:'RC visit',s:'No red flags',loc:'brass',who:'Rabbi Yaakov Feldman',st:{s:'ok',t:'Submitted'}},
+ {d:'November 10',k:'Approval',t:'Panko Bread Crumbs',s:'Product approval, all establishments',loc:null,who:'Avi Rosenberg',st:{s:'ask',t:'Pending'}},
+ {d:'November 9',k:'Visit',t:'RC visit',s:'Report submitted',loc:'ember',who:'Rabbi Meir Kaplan',st:{s:'alert',t:'1 red flag',c:'bad'}},
+ {d:'November 9',k:'Approval',t:'Yuzu Ponzu Sauce',s:'Product approval',loc:'silver',who:'Moshe Katzman',st:{s:'ask',t:'Pending'}},
+ {d:'November 9',k:'Approval',t:'Concord Grape Juice',s:'Product approval, all establishments',loc:null,who:'Avi Rosenberg',st:{s:'ok',t:'Approved'}},
+ {d:'November 8',k:'Incident',t:'Temperature incident',s:'Walk-in #1 read 46°F at opening. Meat was moved to walk-in #2.',loc:'brass',who:'Yossi Friedman',st:{s:'clock',t:'Pending',c:'warn'}},
+ {d:'November 7',k:'Visit',t:'RC visit',s:'No red flags',loc:'hollow',who:'Rabbi Meir Kaplan',st:{s:'ok',t:'Submitted'}},
+ {d:'November 7',k:'Visit',t:'RC visit',s:'No red flags',loc:'bloomfield',who:'Rabbi Meir Kaplan',st:{s:'ok',t:'Submitted'}},
+ {d:'November 7',k:'Visit',t:'RC visit',s:'No red flags',loc:'gates',who:'Rabbi Yaakov Feldman',st:{s:'ok',t:'Submitted'}},
+ {d:'November 7',k:'Approval',t:'Oat Milk Barista Blend',s:'Product approval',loc:'cloudberry',who:'Avi Rosenberg',st:{s:'ok',t:'Approved'}},
+ {d:'November 6',k:'Visit',t:'RC visit',s:'No red flags',loc:'willow',who:'Rabbi Meir Kaplan',st:{s:'ok',t:'Submitted'}},
+ {d:'November 5',k:'Incident',t:'Staff incident',s:'A staff member brought in an unapproved sauce bottle.',loc:'cloudberry',who:'Avi Rosenberg',st:{s:'ok',t:'Resolved'}},
+ {d:'November 5',k:'Approval',t:'Smoked Paprika Rub',s:'Product approval',loc:'ember',who:'Sruly Halpern',st:{s:'ok',t:'Approved'}},
+ {d:'November 4',k:'Visit',t:'RC visit',s:'No red flags',loc:'butchers',who:'Rabbi Yaakov Feldman',st:{s:'ok',t:'Submitted'}}
+];
+var N=[ /* what needs the signed-in person */
+ {id:'n1',s:'alert',t:'Unapproved product at Hollow Oak Market',d:'Dovi Gluck reported it yesterday. High severity.',label:'Review',go:['est','hollow'],loc:'hollow',short:'Unapproved product'},
+ {id:'n2',s:'alert',t:'41 critical checklist answers',d:'The latest are at Silver Fig Sushi, Perla’s Deli & Provisions and The Brass Pomegranate.',label:'Review',go:['records','Checklist']},
+ {id:'n3',s:'alert',t:'Equipment incident at Golden Ember Grill House',d:'Sruly Halpern reported a new fryer delivered without approval.',label:'Review',go:['est','ember'],loc:'ember',short:'Equipment incident'},
+ {id:'n4',s:'ask',t:'Naftali Berger asks to inspect Golden Ember Grill House',d:'He isn’t assigned there. He asked about 24 hours ago.',label:'Respond',menu:['Approve','Allow One Visit','Hold','Decline'],loc:'ember',short:'Naftali Berger asks to inspect here'},
+ {id:'n5',s:'ask',t:'3 product approvals',d:'Horseradish sauce, panko bread crumbs and yuzu ponzu.',label:'Review',go:['records','Approval']},
+ {id:'n6',s:'ask',t:'1 catering request',d:'Goldberg Bar Mitzvah, November 19, 180 guests.',label:'Respond',menu:['Approve','Ask for Changes','Decline']}
+];
+var LOCN={brass:[{id:'l2',s:'ask',t:'Product approval',d:'Yossi Friedman asked about Prepared Horseradish Sauce today.',label:'Review',tab:'Records'}],
+ silver:[{id:'l3',s:'ask',t:'Product approval',d:'Moshe Katzman asked about Yuzu Ponzu Sauce on November 9.',label:'Review',tab:'Records'}]};
+var PN={'Chaim Perlow':[{id:'p1',s:'clock',t:'KIA course not finished',d:'He started it but has not completed it.',label:'Remind',menu:['Send Reminder']}]};
+
+/* ───── state ───── */
+var S={route:'today',id:null,tab:'Overview',sub:'Shifts',filter:'All',status:'All',q:'',view:'List',stack:[],done:{},device:'office',mode:'new',all:false};
+var app=$('#app'), win=$('#win');
+var initials=function(n){var p=n.replace(/^Rabbi /,'').split(' ');return (p[0][0]+(p[p.length-1][0]||'')).toUpperCase()};
+var open=function(list){return list.filter(function(n){return !S.done[n.id]})};
+var sitesOf=function(name){return E.filter(function(e){return e.mash.indexOf(name)>-1||e.rc===name})};
+
+/* ───── pieces ───── */
+function stateHtml(st){return '<span class="state '+(st.c||'')+'">'+sym(st.s)+esc(st.t)+'</span>'}
+function needRows(list,first){
+  return list.map(function(n,i){
+    var prim=first&&i===0?' primary':'';
+    var btn=n.menu?'<button class="pill'+prim+'" data-menu="'+n.id+'" aria-haspopup="menu">'+esc(n.label)+'</button>'
+      :'<button class="pill'+prim+'" data-need="'+n.id+'">'+esc(n.label)+'</button>';
+    return '<div class="row">'+sym(n.s,SYMLABEL[n.s])+'<div class="main"><div class="t">'+esc(n.short&&S.route==='est'?n.short:n.t)+'</div><div class="d">'+esc(n.d)+'</div></div>'+btn+'</div>';
+  }).join('');
+}
+function needsBlock(list,first){
+  if(!list.length) return '';
+  return '<div class="sec"><h2>Needs You</h2><span class="n">'+list.length+'</span></div><div class="group needs">'+needRows(list,first)+'</div>';
+}
+function estRow(e,live){
+  var st=live&&e.st==='ok'?'<span class="state">Closed now</span>':stateHtml({s:e.st,t:e.stText,c:e.st==='alert'?'bad':''});
+  return '<button class="row" data-go="est:'+e.id+'"><div class="main"><div class="t">'+esc(e.name)+'</div><div class="d">'+esc(e.type+' · '+e.city)+'</div></div><span class="trail">'+st+chev+'</span></button>';
+}
+function recRow(r,hideLoc){
+  var where=[!hideLoc&&r.loc?byId[r.loc].name:null,r.who].filter(Boolean).join(' · ');
+  return '<div class="row"><div class="main"><div class="t">'+esc(r.t)+'</div><div class="d">'+esc(r.s)+'</div><div class="d">'+esc(where)+'</div></div><span class="trail" style="flex-direction:column;align-items:flex-end;gap:2px">'+stateHtml(r.st)+'<span>'+esc(r.d)+'</span></span></div>';
+}
+function personRow(p){
+  var n=sitesOf(p.name).length, bits=[p.role+(p.you?' (you)':'')]; if(n) bits.push(n+(n===1?' establishment':' establishments'));
+  var st=p.kia===false?stateHtml({s:'clock',t:'KIA course pending',c:'warn'}):'';
+  return '<button class="row" data-go="person:'+esc(p.name)+'"><span class="avatar" aria-hidden="true">'+initials(p.name)+'</span><div class="main"><div class="t">'+esc(p.name)+'</div><div class="d">'+esc(bits.join(' · '))+'</div></div><span class="trail">'+st+chev+'</span></button>';
+}
+function segHtml(name,opts,cur,full){
+  return '<div class="seg'+(full?' full':'')+'" role="group" aria-label="'+name+'">'+opts.map(function(o){return '<button data-seg="'+name+':'+o+'" aria-pressed="'+(o===cur)+'">'+o+'</button>'}).join('')+'</div>';
+}
+function topbar(){
+  var tabs=[['today','Today'],['schedule','Schedule'],['ests','Establishments'],['people','People'],['records','Records']];
+  var cur={est:'ests',person:'people'}[S.route]||S.route;
+  return '<header class="topbar"><div class="brand">Maple Glen</div><nav class="tabs" aria-label="Sections">'+tabs.map(function(t){return '<button data-nav="'+t[0]+'"'+(cur===t[0]?' aria-current="page"':'')+'>'+t[1]+'</button>'}).join('')+'</nav>'+
+  '<div class="tools"><button class="icon-btn" data-nav="search" aria-label="Search"><svg width="20" height="20" aria-hidden="true"><use href="#i-search"/></svg></button>'+
+  '<button class="icon-btn" data-pop="msgs" aria-label="Messages, 3 unread" aria-haspopup="menu"><svg width="22" height="22" aria-hidden="true"><use href="#i-msg"/></svg><span class="badge">3</span></button>'+
+  '<button class="icon-btn" data-pop="acct" aria-label="Account: Rabbi Dovid Stern" aria-haspopup="menu"><span class="me">DS</span></button></div></header>';
+}
+
+/* ───── pages ───── */
+var pages={
+ today:function(){
+  var n=open(N), six=E.slice(0,6);
+  return '<p class="eyebrow">Wednesday, November 11</p><h1 class="title">Today</h1>'+
+   (n.length?needsBlock(n,true):'<div class="sec"><h2>Needs You</h2></div><div class="group"><div class="empty">Nothing needs you right now.</div></div>')+
+   '<div class="sec"><h2>On Site Now</h2></div><div class="group"><button class="row" data-nav="schedule"><div class="main"><div class="t">Nobody is on shift right now</div><div class="d">The first shift tomorrow starts at 5:30 AM at Twelve Gates Bakery.</div></div><span class="trail">'+chev+'</span></button></div>'+
+   '<div class="sec"><h2>Establishments</h2><div class="end">'+segHtml('view',['List','Map'],S.view)+'</div></div>'+
+   (S.view==='Map'?'<div class="group"><div class="empty">The map shows the same 14 establishments as pins, with the same statuses. It is not drawn in this preview.</div></div>'
+    :'<div class="group wrap">'+six.map(function(e){return estRow(e,true)}).join('')+'<button class="row more" data-nav="ests"><div class="main">Show All 14</div></button></div>');
+ },
+ schedule:function(){
+  var body='', addL={Shifts:'Add Shift',Events:'Add Event',Visits:'Schedule Visit'}[S.sub];
+  if(S.sub==='Shifts'){
+   var list=S.all?SH:SH.slice(0,4);
+   body=needsBlock(open([{id:'s1',s:'clock',t:'1 open shift on Wednesday, November 18',d:'Nobody is assigned yet.',label:'Assign',menu:['Offer to Everyone','Pick a Mashgiach']}]),false)+
+    '<div class="sec"><h2>Tomorrow</h2><span class="n">Thursday, November 12</span></div><div class="group wrap">'+list.map(function(s){return '<button class="row" data-go="person:'+s[1]+'"><div class="main"><div class="t">'+esc(s[1])+'</div><div class="d">'+esc(byId[s[2]].name)+'</div></div><span class="trail">'+esc(s[0])+chev+'</span></button>'}).join('')+
+    (S.all?'':'<button class="row more" data-all="1"><div class="main">Show All '+SH.length+'</div></button>')+'</div>'+
+    '<div class="sec"><h2>Coming Up</h2></div><div class="group wrap">'+DAYS.map(function(d){return '<div class="row"><div class="main"><div class="t">'+esc(d[0])+'</div><div class="d">'+esc(d[1]+(d[2]?' · '+d[2]:''))+'</div></div>'+(d[3]?'<span class="trail">'+stateHtml(d[3])+'</span>':'')+'</div>'}).join('')+'</div>';
+  } else if(S.sub==='Events'){
+   body=needsBlock(open([N[5]]),false)+'<div class="sec"><h2>Coming Up</h2></div><div class="group wrap">'+EV.map(function(e){return '<div class="row"><div class="main"><div class="t">'+esc(e[0])+'</div><div class="d">'+esc(e[1])+'</div></div><span class="trail">'+stateHtml(e[2])+'</span></div>'}).join('')+'</div>';
+  } else {
+   body='<div class="sec"><h2>Due Next</h2></div><div class="group wrap">'+DUE.map(function(d){var e=byId[d[0]];return '<button class="row" data-go="est:'+e.id+'"><div class="main"><div class="t">'+esc(e.name)+'</div><div class="d">'+esc(e.rc)+'</div></div><span class="trail">Due in '+d[1]+chev+'</span></button>'}).join('')+'<div class="row"><div class="main" style="color:var(--text2)">6 more are due later. Nothing is overdue.</div></div></div>';
+  }
+  return '<div class="titlebar"><h1 class="title">Schedule</h1><div class="acts"><button class="act primary" data-todo="'+addL+'">'+addL+'</button></div></div>'+segHtml('sub',['Shifts','Events','Visits'],S.sub,true)+body;
+ },
+ ests:function(){
+  var q=S.q.toLowerCase(), list=E.filter(function(e){return (S.status==='All'||e.stText===S.status)&&(!q||(e.name+' '+e.city+' '+e.type).toLowerCase().indexOf(q)>-1)});
+  return '<div class="titlebar"><h1 class="title">Establishments</h1><div class="acts"><button class="act icon" data-pop="more" aria-label="More" aria-haspopup="menu"><svg width="24" height="24" aria-hidden="true"><use href="#i-more"/></svg></button><button class="act primary" data-todo="Add Establishment">Add Establishment</button></div></div>'+
+   '<div class="tools-row"><label class="field"><svg width="18" height="18" aria-hidden="true"><use href="#i-search"/></svg><input id="estq" type="search" placeholder="Search establishments" aria-label="Search establishments" value="'+esc(S.q)+'"></label>'+
+   '<select class="popup" id="eststatus" aria-label="Status">'+['All','Approved','Flagged','Pending review','On hold'].map(function(o){return '<option value="'+o+'"'+(o===S.status?' selected':'')+'>'+(o==='All'?'All Statuses':o)+'</option>'}).join('')+'</select></div>'+
+   '<div class="sec" style="margin-top:20px"><h2>'+(list.length===14?'All 14':list.length+' of 14')+'</h2></div>'+
+   (list.length?'<div class="group wrap">'+list.map(function(e){return estRow(e)}).join('')+'</div>':'<div class="group"><div class="empty">No establishment matches. Clear the search or choose All Statuses.</div></div>');
+ },
+ est:function(){
+  var e=byId[S.id], needs=open(N.filter(function(n){return n.loc===e.id}).concat(LOCN[e.id]||[]));
+  var recs=R.filter(function(r){return r.loc===e.id}), shift=SH.filter(function(s){return s[2]===e.id})[0];
+  var head='<button class="back" data-back="1"><svg width="8" height="14" style="transform:scaleX(-1)" aria-hidden="true"><use href="#chev"/></svg>'+esc(S.backLabel||'Establishments')+'</button><h1 class="title">'+esc(e.name)+'</h1>'+
+   '<div class="headline"><span>'+esc(e.type+' · '+e.street+', '+e.city)+'</span>'+stateHtml({s:e.st,t:e.stText,c:e.st==='alert'?'bad':''})+'</div>'+
+   '<div class="acts below"><button class="act primary" data-todo="Start Inspection">Start Inspection</button><button class="act" data-todo="Message">Message</button><button class="act" data-todo="Report an Issue">Report an Issue</button></div>'+
+   segHtml('tab',['Overview','Records','Notes','Setup'],S.tab,true);
+  var kv=function(k,v,go){return go?'<button class="row" data-go="'+go+'"><span class="k">'+k+'</span><span class="v">'+v+'</span>'+chev+'</button>':'<div class="row"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'};
+  if(S.tab==='Overview'){
+   return head+needsBlock(needs,false)+'<div class="sec"><h2>Right Now</h2></div><div class="group kv">'+
+    kv('On Site','<b>Nobody right now.</b>'+(shift?' The next shift is tomorrow, '+esc(shift[0].split(' to ')[0])+', '+esc(shift[1])+'.':''))+
+    kv('Open Today',e.hours?'<b>'+e.hours+'</b>':'Hours are not set.')+
+    kv('Coordinator','<b>'+esc(e.rc)+'</b>','person:'+e.rc)+
+    kv('Mashgichim',e.mash.length?'<b>'+esc(e.mash.join(', '))+'</b>':'None assigned.')+
+    kv('RC Visits',esc(e.visit))+
+    (e.std?kv('Standards','<b>'+e.std+'</b>'):'')+'</div>'+
+    '<div class="sec"><h2>Recent</h2></div>'+(recs.length?'<div class="group wrap">'+recs.slice(0,3).map(function(r){return recRow(r,true)}).join('')+'<button class="row more" data-seg="tab:Records"><div class="main">Show All Records</div></button></div>':'<div class="group"><div class="empty">Nothing has been recorded here in the last two weeks.</div></div>');
+  }
+  if(S.tab==='Records') return head+'<div class="sec"><h2>Records</h2></div>'+(recs.length?'<div class="group wrap">'+recs.map(function(r){return recRow(r,true)}).join('')+'</div>':'<div class="group"><div class="empty">Nothing has been recorded here in the last two weeks.</div></div>');
+  if(S.tab==='Notes') return head+'<div class="sec"><h2>Notes</h2><div class="end"><button class="pill" data-todo="Add Note">Add Note</button></div></div><div class="group"><div class="empty">No notes yet. Notes are visible to coordinators only.</div></div>';
+  var su=e.setup||{}, sr=function(k,v){return '<button class="row" data-todo="'+k+'"><span class="k" style="width:220px">'+k+'</span><span class="v">'+(v||'')+'</span>'+chev+'</button>'};
+  return head+'<div class="sec"><h2>Setup</h2></div><div class="group kv">'+sr('Details',esc(e.type))+sr('Hours',e.hours?'Set':'Not set')+sr('Letter of Certification',su.loc||'')+sr('Kosher Standards',e.std||'Agency defaults')+sr('Contract Terms','')+sr('Website Listing',su.web||'')+sr('Weekly Schedule Email',su.mail||'Off')+sr('Clock-In QR Code','')+sr('Onboarding',su.onb||'')+'</div>';
+ },
+ people:function(){
+  var inv=open([{id:'i1',s:'ask',t:'1 invitation not sent',d:'eli.mandel@example.test was added but has not been invited.',label:'Send',menu:['Send Invitation']}]);
+  return '<div class="titlebar"><h1 class="title">People</h1><div class="acts"><button class="act primary" data-todo="Add Person">Add Person</button></div></div>'+needsBlock(inv,false)+
+   '<div class="sec"><h2>Agency Team</h2></div><div class="group people">'+P.filter(function(p){return !/ashgiach/.test(p.role)}).map(personRow).join('')+'</div>'+
+   '<div class="sec"><h2>Mashgichim</h2></div><div class="group people">'+P.filter(function(p){return /ashgiach/.test(p.role)}).map(personRow).join('')+'</div>';
+ },
+ person:function(){
+  var p=P.filter(function(x){return x.name===S.id})[0], sites=sitesOf(p.name), sh=SH.filter(function(s){return s[1]===p.name})[0], recs=R.filter(function(r){return r.who===p.name});
+  var isM=/ashgiach/.test(p.role);
+  return '<button class="back" data-back="1"><svg width="8" height="14" style="transform:scaleX(-1)" aria-hidden="true"><use href="#chev"/></svg>'+esc(S.backLabel||'People')+'</button><h1 class="title">'+esc(p.name)+'</h1>'+
+   '<div class="headline"><span>'+esc(p.role)+(p.phone?' · '+p.phone:'')+'</span></div>'+
+   '<div class="acts below"><button class="act primary" data-todo="Message">Message</button></div>'+
+   needsBlock(open(PN[p.name]||[]),false)+
+   '<div class="sec"><h2>Right Now</h2></div><div class="group kv"><div class="row"><span class="k">On Shift</span><span class="v"><b>No.</b>'+(sh?' The next shift is tomorrow, '+esc(sh[0].split(' to ')[0])+', at '+esc(byId[sh[2]].name)+'.':'')+'</span></div>'+
+   (isM?'<div class="row"><span class="k">KIA Course</span><span class="v">'+(p.kia?stateHtml({s:'ok',t:'Completed'}):stateHtml({s:'clock',t:'Not finished',c:'warn'}))+'</span></div>':'')+'</div>'+
+   '<div class="sec"><h2>Establishments</h2></div>'+(sites.length?'<div class="group wrap">'+sites.map(function(e){return estRow(e)}).join('')+'</div>':'<div class="group"><div class="empty">None assigned.</div></div>')+
+   '<div class="sec"><h2>Recent</h2></div>'+(recs.length?'<div class="group wrap">'+recs.slice(0,4).map(function(r){return recRow(r)}).join('')+'</div>':'<div class="group"><div class="empty">Nothing recorded in the last two weeks.</div></div>');
+ },
+ records:function(){
+  var kinds=['All','Visit','Incident','Approval','Checklist'], names={All:'All Records',Visit:'RC Visits',Incident:'Incidents',Approval:'Product Approvals',Checklist:'Checklist Answers'};
+  var list=R.filter(function(r){return S.filter==='All'||r.k===S.filter}), out='', last='';
+  list.forEach(function(r){ if(r.d!==last){ out+=(last?'</div>':'')+'<div class="sec"><h2>'+esc(r.d)+'</h2></div><div class="group wrap">'; last=r.d } out+=recRow(r) });
+  return '<div class="titlebar"><h1 class="title">Records</h1></div><div class="tools-row"><select class="popup" id="reckind" aria-label="Kind of record">'+kinds.map(function(k){return '<option value="'+k+'"'+(k===S.filter?' selected':'')+'>'+names[k]+'</option>'}).join('')+'</select></div>'+
+   (S.filter==='Checklist'?'<p style="color:var(--text2);margin:16px 4px 0">Showing the 3 newest of 41 critical answers.</p>':'')+
+   (list.length?out+'</div>':'<div class="group" style="margin-top:20px"><div class="empty">No records of this kind.</div></div>');
+ },
+ search:function(){
+  return '<div class="titlebar"><h1 class="title">Search</h1><div class="acts"><button class="act" data-back="1">Cancel</button></div></div><div class="tools-row"><label class="field"><svg width="18" height="18" aria-hidden="true"><use href="#i-search"/></svg><input id="gq" type="search" placeholder="Search establishments, people and records" aria-label="Search establishments, people and records" value="'+esc(S.gq||'')+'"></label></div><div id="gres">'+searchResults()+'</div>';
+ }
+};
+function searchResults(){
+  var q=(S.gq||'').trim().toLowerCase(); if(!q) return '<div class="group" style="margin-top:20px"><div class="empty">Type a name, a city or a kind of record.</div></div>';
+  var es=E.filter(function(e){return (e.name+' '+e.city+' '+e.type).toLowerCase().indexOf(q)>-1}), ps=P.filter(function(p){return p.name.toLowerCase().indexOf(q)>-1}), rs=R.filter(function(r){return (r.t+' '+r.s+' '+r.k).toLowerCase().indexOf(q)>-1}).slice(0,5);
+  if(!es.length&&!ps.length&&!rs.length) return '<div class="group" style="margin-top:20px"><div class="empty">Nothing matches “'+esc(S.gq)+'”.</div></div>';
+  return (es.length?'<div class="sec"><h2>Establishments</h2></div><div class="group wrap">'+es.map(function(e){return estRow(e)}).join('')+'</div>':'')+
+   (ps.length?'<div class="sec"><h2>People</h2></div><div class="group people">'+ps.map(personRow).join('')+'</div>':'')+
+   (rs.length?'<div class="sec"><h2>Records</h2></div><div class="group wrap">'+rs.map(function(r){return recRow(r)}).join('')+'</div>':'');
+}
+
+/* ───── new phone screen ───── */
+function phoneHtml(){
+  return '<section class="phone" aria-label="Mashgiach phone, on shift"><div class="screen"><div class="scroll">'+
+  '<div class="status" aria-hidden="true"><span>1:41</span><span class="island"></span><span class="sys"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.4" fill="currentColor"/><path d="M25 4.5v4c.8-.3 1.500-1.100 1.500-2s-.700-1.700-1.500-2Z" fill="currentColor" opacity=".45"/></svg></span></div>'+
+  '<h1 class="p-title">Silver Fig Sushi</h1><div class="shift"><div class="l">On shift since 11:00 AM</div><div class="timer" id="timer">2:41:07</div></div>'+
+  '<h2 class="p-sec">Today</h2><div class="group">'+
+  '<button class="row" data-todo="Opening Checklist">'+sym('ok','Done').replace('class="sym"','class="sym" style="width:26px;height:26px"')+'<div class="main"><div class="t">Opening Checklist</div><div class="d">Done at 11:08 AM</div></div>'+chev+'</button>'+
+  '<div class="row"><svg width="26" height="26" viewBox="0 0 26 26" role="img" aria-label="In progress"><circle cx="13" cy="13" r="10.8" fill="none" stroke="var(--fill2)" stroke-width="2.4"/><path d="M13 2.2a10.8 10.8 0 0 1 7.640 18.440" fill="none" stroke="var(--blue-fill)" stroke-width="2.400" stroke-linecap="round"/></svg><div class="main"><div class="t">During the Shift</div><div class="d">3 of 8 checked</div></div><button class="pill primary" data-todo="Continue">Continue</button></div>'+
+  '<div class="row muted"><svg width="26" height="26" viewBox="0 0 26 26" role="img" aria-label="Locked"><rect x="6.5" y="11.5" width="13" height="10" rx="2.6" fill="var(--text3)"/><path d="M9.300 11.500V8.700a3.700 3.700 0 0 1 7.400 0v2.800" fill="none" stroke="var(--text3)" stroke-width="2.200" stroke-linecap="round"/></svg><div class="main"><div class="t">Closing Checklist</div><div class="d">Opens at the end of your shift</div></div></div></div>'+
+  '<div class="btns"><button class="btn" data-todo="Report a Problem">Report a Problem</button><button class="btn" data-todo="Ask My RC">Ask My RC</button><button class="btn text" data-todo="Clock Out">Clock Out</button></div></div>'+
+  '<nav class="tabbar" aria-label="Sections"><button aria-current="page"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="4" fill="currentColor"/><rect x="6.5" y="9.5" width="11" height="8" rx="1.6" fill="var(--surface)"/></svg>Today</button><button data-todo="Lists"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3.800 6.300 1.500 1.500 2.600-2.900M3.800 12.300l1.500 1.500 2.600-2.900M3.800 18.300l1.500 1.500 2.600-2.900M11.500 6.500h8.700M11.500 12.500h8.700M11.500 18.500h8.700"/></svg>Lists</button><button data-todo="Messages"><svg aria-hidden="true" width="24" height="24" aria-hidden="true"><use href="#i-msg"/></svg>Messages</button><button data-todo="Profile"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="9.800" r="3.100"/><path d="M6.200 18.600c1.200-2.200 3.300-3.400 5.800-3.400s4.600 1.200 5.800 3.400"/></svg>Profile</button></nav><span class="home" aria-hidden="true"></span></div></section>';
+}
+
+/* ───── shell: which system, which device, what changed ───── */
+var OLD={today:'home',schedule:'calendar',ests:'locations',est:'location',people:'mashgichim',person:'mashgichim',records:'reports',search:'home'};
+var NOTE={
+ today:'<b>Home.</b> Current: a menu of 45 links in 8 groups, 4 shortcut cards, a list of 41 alerts, 6 counters, messages, events and a map. New: one list of what needs a decision, then who is on site, then the establishments.',
+ schedule:'<b>Schedule.</b> Current: a month calendar with 5 filters, plus separate pages for shifts, events and one-time jobs. New: one place for everything with a future date, split into Shifts, Events and Visits.',
+ ests:'<b>Establishments.</b> Current: 5 toolbar buttons, 7 filters and 6 small icons on every row. New: a search field, one status filter, and rows that open the establishment.',
+ est:'<b>One establishment.</b> Current: about ten sections on one long page, from website listing to certificate standards. New: what needs you, what is true right now and what happened recently. Everything you set once moved to the Setup tab. The current-system screenshot is of Golden Ember Grill House.',
+ people:'<b>People.</b> Current: mashgichim, coordinators, the course, orientations and applications are separate pages. New: one People section with everyone in it, and one page per person.',
+ person:'<b>One person.</b> Current: the screenshot shows the mashgichim list; a person’s details are spread over several pages. New: one page per person with their shifts, establishments, training and recent records.',
+ records:'<b>Records.</b> Current: inspections, incidents, approvals, submissions and reports each have their own page. New: one history, newest first, filtered by kind.',
+ search:'<b>Search.</b> One search covers establishments, people and records.',
+ phone:'<b>Mashgiach phone.</b> Current: the screen before clocking in, with a photo prompt, a notice and an arrival form above the clock-in. New: the screen during a shift, with the timer, three checklists in order and three buttons. These are two different moments, so compare the structure, not the content. The new phone screen is also a different moment from the office screens, where nobody is on shift.'
+};
+function shell(){
+  var phone=S.device==='phone', both=S.mode==='both', showOld=S.mode!=='new', showNew=S.mode!=='old';
+  $('#stage').className='stage'+(both?' both':'');
+  $('#oldPane').hidden=!showOld; $('#newPane').hidden=!showNew;
+  win.hidden=phone; $('#phoneWrap').hidden=!phone;
+  $('#oldWin').hidden=phone; $('#oldPhoneWrap').hidden=!phone;
+  $('#oldH').textContent=phone?'Current system (screenshot)':'Current system (screenshot, scroll inside it)';
+  var img=$('#oldImg'), src='old/'+OLD[S.route]+'.jpg';
+  if(img.getAttribute('src')!==src){ img.setAttribute('src',src); $('#shot').scrollTop=0 }
+  img.alt='Screenshot of the current system: '+S.route;
+  $('#note').innerHTML=NOTE[phone?'phone':S.route];
+  [['devOffice',!phone],['devPhone',phone],['modeNew',S.mode==='new'],['modeOld',S.mode==='old'],['modeBoth',both]].forEach(function(x){$('#'+x[0]).setAttribute('aria-pressed',x[1])});
+}
+function render(keepFocus,pos){
+  closeMenu();
+  app.innerHTML=topbar()+'<main class="col">'+pages[S.route]()+'</main>';
+  shell();
+  if(keepFocus){ var el=$('#'+keepFocus); if(el){ el.focus(); if(pos!=null&&el.setSelectionRange){ try{ el.setSelectionRange(pos,pos) }catch(e){} } } }
+}
+function go(route,id,label){
+  if(route==='est'||route==='person'||route==='search'){ S.stack.push({route:S.route,id:S.id,tab:S.tab,backLabel:S.backLabel}); S.backLabel=label||({today:'Today',schedule:'Schedule',ests:'Establishments',people:'People',records:'Records',est:byId[S.id]&&byId[S.id].name,person:S.id,search:'Search'}[S.route]) }
+  else { S.stack=[]; S.backLabel=null }
+  S.route=route; S.id=id||null; S.all=false; if(route==='est') S.tab='Overview';
+  render(); if(route==='search'){ var g=$('#gq'); g&&g.focus() }
+  var top=win.getBoundingClientRect().top; if(top<0) window.scrollBy(0,top-12);
+}
+function back(){ var p=S.stack.pop()||{route:'today'}; S.route=p.route; S.id=p.id; S.tab=p.tab||'Overview'; S.backLabel=p.backLabel; render() }
+
+/* menus + toast */
+var menuEl=null, menuBtn=null, toastT=null;
+function closeMenu(refocus){ if(menuEl){ menuEl.remove(); menuEl=null; if(menuBtn){ menuBtn.setAttribute('aria-expanded','false'); if(refocus&&document.contains(menuBtn)) menuBtn.focus(); menuBtn=null } } }
+function openMenu(anchor,html){
+  closeMenu(); menuEl=document.createElement('div'); menuEl.className='menu'; menuEl.setAttribute('role','menu'); menuEl.setAttribute('aria-label',anchor.getAttribute('aria-label')||anchor.textContent.trim()); menuBtn=anchor; anchor.setAttribute('aria-expanded','true'); menuEl.innerHTML=html; win.appendChild(menuEl);
+  var a=anchor.getBoundingClientRect(), w=win.getBoundingClientRect(), mw=menuEl.offsetWidth;
+  var left=Math.min(Math.max(a.right-w.left-mw,12),w.width-mw-12);
+  menuEl.style.left=left+'px'; menuEl.style.top=(a.bottom-w.top+6)+'px';
+  var f=$('button',menuEl); f&&f.focus();
+}
+function toast(msg){
+  var old=$('.toast'); old&&old.remove(); clearTimeout(toastT);
+  var t=document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.textContent=msg;
+  if(S.device==='phone') $('#phoneWrap .screen').appendChild(t); else { t.className='toast fixed'; document.body.appendChild(t) }; toastT=setTimeout(function(){t.remove()},2600);
+}
+var allNeeds=function(){ var a=N.slice(); Object.keys(LOCN).forEach(function(k){a=a.concat(LOCN[k])}); Object.keys(PN).forEach(function(k){a=a.concat(PN[k])}); a.push({id:'s1',menu:['Offer to Everyone','Pick a Mashgiach']},{id:'i1',menu:['Send Invitation']}); return a };
+
+document.addEventListener('click',function(ev){
+  var t=ev.target.closest('button,[data-go]');
+  if(menuEl&&!ev.target.closest('.menu')&&!(t&&(t.dataset.menu||t.dataset.pop))) closeMenu();
+  if(!t) return;
+  var d=t.dataset;
+  if(t.id==='devOffice'||t.id==='devPhone'){ S.device=t.id==='devPhone'?'phone':'office'; if(S.device==='phone'&&!$('#phoneWrap').innerHTML){ $('#phoneWrap').innerHTML=phoneHtml(); tick() } shell(); return }
+  if(t.id==='modeNew'||t.id==='modeOld'||t.id==='modeBoth'){ S.mode={modeNew:'new',modeOld:'old',modeBoth:'both'}[t.id]; shell(); return }
+  if(d.nav){ if(d.nav==='search'&&S.route==='search'){ var g=$('#gq'); g&&g.focus() } else go(d.nav); return }
+  if(d.back){ back(); return }
+  if(d.go){ var p=d.go.split(':'); go(p[0],p.slice(1).join(':')); return }
+  if(d.seg){ var s=d.seg.split(':'); S[s[0]]=s[1]; S.all=false; render(); return }
+  if(d.all){ S.all=true; render(); return }
+  if(d.need){ var n=allNeeds().filter(function(x){return x.id===d.need})[0]; if(n.go&&n.go[0]==='est'&&S.route==='est'&&S.id===n.go[1]){ S.tab='Records'; render() } else if(n.go){ if(n.go[0]==='records'){ S.filter=n.go[1]; go('records') } else go(n.go[0],n.go[1]) } else if(n.tab){ S.tab=n.tab; render() } return }
+  if(d.menu){ var m=allNeeds().filter(function(x){return x.id===d.menu})[0]; openMenu(t,m.menu.map(function(o){return m.id==='s1'?'<button role="menuitem" data-todo="'+o+'">'+o+'</button>':'<button role="menuitem" data-pick="'+m.id+'" data-label="'+o+'">'+o+'</button>'}).join('')); return }
+  if(d.pick){ S.done[d.pick]=true; var lbl=d.label; render(); toast(lbl+': done. The item left the list.'); return }
+  if(d.pop==='acct'){ openMenu(t,'<div class="mh">Rabbi Dovid Stern · Owner<br>Vaad HaKashrus of Maple Glen</div><hr><button role="menuitem" data-todo="Agency Settings">Agency Settings</button><button role="menuitem" data-todo="What’s New">What’s New</button><button role="menuitem" data-todo="My Requests">My Requests</button><hr><button role="menuitem" data-todo="Sign Out">Sign Out</button>'); return }
+  if(d.pop==='msgs'){ openMenu(t,'<div class="msg"><div><b>Rabbi Yaakov Feldman</b></div><div class="d">Reviewed the Twelve Gates visit report. Clean. Scheduling their cert renewal photos for next week.</div></div><hr><div class="msg"><div class="d">2 unread messages in your group chats.</div></div><hr><button role="menuitem" data-todo="All Messages">Show All Messages</button>'); return }
+  if(d.pop==='more'){ openMenu(t,'<button role="menuitem" data-todo="Import">Import…</button><button role="menuitem" data-todo="Print List">Print List</button><button role="menuitem" data-todo="Data Table">Show as Data Table</button>'); return }
+  if(d.todo){ closeMenu(); toast(d.todo+' is not built in this preview.'); return }
+});
+document.addEventListener('keydown',function(ev){ if(ev.key==='Escape'){ if(menuEl) closeMenu(true); else if(S.route==='search') back() }
+  if(menuEl&&(ev.key==='ArrowDown'||ev.key==='ArrowUp')){ var bs=[].slice.call(menuEl.querySelectorAll('button')), k=bs.indexOf(document.activeElement); if(bs.length){ ev.preventDefault(); bs[(k+(ev.key==='ArrowDown'?1:bs.length-1)+bs.length)%bs.length].focus() } } });
+document.addEventListener('focusin',function(ev){ if(menuEl&&!menuEl.contains(ev.target)&&ev.target!==menuBtn) closeMenu() });
+document.addEventListener('input',function(ev){
+  if(ev.target.id==='estq'){ S.q=ev.target.value; render('estq',ev.target.selectionStart) }
+  if(ev.target.id==='gq'){ S.gq=ev.target.value; $('#gres').innerHTML=searchResults() }
+});
+document.addEventListener('change',function(ev){
+  if(ev.target.id==='eststatus'){ S.status=ev.target.value; render('eststatus') }
+  if(ev.target.id==='reckind'){ S.filter=ev.target.value; render('reckind') }
+});
+function tick(){} /* the shift timer is a still picture, so it never disagrees with the clock in the status bar */
+var mq=window.matchMedia('(max-width:1179px)'), narrow=function(){ if(mq.matches&&S.mode==='both'){ S.mode='new'; shell() } };
+mq.addEventListener?mq.addEventListener('change',narrow):mq.addListener(narrow);
+render();
+})();
+</script>
+
+</body>
+</html>
