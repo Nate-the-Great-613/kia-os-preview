@@ -296,8 +296,6 @@ button.grow:hover{background:var(--fill)}
   .week{grid-template-columns:repeat(2,1fr)}
   .vis .wrap .main{flex-basis:calc(100% - 50px)}
   .vis .wrap .trail{margin-inline-start:50px}
-  .vis .wrap .row:has(.thumb) .main{flex-basis:calc(100% - 58px)}
-  .vis .wrap .row:has(.thumb) .trail{margin-inline-start:58px}
   .cards.two{grid-template-columns:1fr}
 }
 @media (max-width:520px){ .picker .seg button{padding:0 8px;font-size:.8125rem} }
@@ -322,15 +320,8 @@ button.grow:hover{background:var(--fill)}
 @media (max-width:700px){ .vers{grid-template-columns:1fr} .ver{min-height:0} }
 @media (prefers-reduced-motion:reduce){ .cmp input,.cmp input::after{transition:none} }
 /* photographs in the visual design */
-.thumb{width:44px;height:44px;border-radius:10px;overflow:hidden;flex:none;background:var(--fill);display:block}
-.thumb img,.cover img,.banner img,.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .avatar.ph{overflow:hidden;background:var(--fill)}
-.card.est{flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden}
-.card.est .cover{display:block;aspect-ratio:16/9;background:var(--fill)}
-.card.est .main{padding:12px 14px 14px}
-.banner{aspect-ratio:3/1;border-radius:18px;overflow:hidden;background:var(--fill);margin-bottom:18px}
-.vis .wrap .row .thumb,.vis .needs .row .thumb{align-self:center}
-@container (max-width:520px){ .banner{aspect-ratio:16/9} }
 @media (max-width:1179px){ #cmpWrap{display:none} .stage.both{grid-template-columns:1fr} }
 @media (prefers-reduced-motion: no-preference){ .pill,.act,.row,.icon-btn{transition:background-color .12s} }
 </style>
@@ -377,7 +368,7 @@ button.grow:hover{background:var(--fill)}
     <div class="vers" role="group" aria-labelledby="verL">
       <button class="ver" id="modeOld" aria-pressed="false"><b>Current System</b><span>KIA OS as it is today. Pictures only.</span></button>
       <button class="ver" id="modeNew" aria-pressed="true"><b>Clarity</b><span>New design, plain lists. Try the buttons and rows.</span></button>
-      <button class="ver" id="modeVis" aria-pressed="false"><b>Aurora</b><span>New design, with photos, cards and charts.</span></button>
+      <button class="ver" id="modeVis" aria-pressed="false"><b>Aurora</b><span>New design, with symbols, cards and charts.</span></button>
     </div>
     <div class="prow">
       <div>
@@ -405,7 +396,7 @@ button.grow:hover{background:var(--fill)}
     </section>
   </div>
 
-  <p class="foot">The agency, establishments and people shown are KIA’s public demo data. None of it is a real agency, business, product, phone number or person. The photographs are illustrations made for KIA’s sample website and do not show real places or people. The current-system screenshots were taken from that demo on November 11, 2026, late in the evening, which is why nobody is on shift.</p>
+  <p class="foot">The agency, establishments and people shown are KIA’s public demo data. None of it is a real agency, business, product, phone number or person. The portraits are illustrations made for KIA’s sample website and do not show real people. The current-system screenshots were taken from that demo on November 11, 2026, late in the evening, which is why nobody is on shift.</p>
 </div>
 
 <script src="preview.js"></script>

@@ -244,10 +244,8 @@ var KINDG={Visit:['clip','blue'],Incident:['warn','brown'],Approval:['tag','purp
 var KN={Visit:'RC Visits',Incident:'Incidents',Approval:'Product Approvals',Checklist:'Checklist Answers'};
 var STN={ok:'Approved',alert:'Flagged',ask:'Pending review',pause:'On hold'};
 function tile(g,c,size){return '<span class="tile t-'+c+(size?' '+size:'')+'" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#g-'+g+'"/></svg></span>'}
-var PHOTO={hollow:'market-produce',kestrel:'scene-kitchen-prep',harbor:'restaurant-meat-burger',bloomfield:'restaurant-dairy-icecream',cloudberry:'restaurant-dairy-cafe',ember:'restaurant-meat-steak',butchers:'butcher-case',perla:'restaurant-meat-deli',silver:'restaurant-fish-sushi',brass:'restaurant-meat-lamb',gates:'bakery-challah',rivers:'restaurant-fish-branzino',vine:'restaurant-wine-bar',willow:'caterer-buffet'};
 var FACE={'Rabbi Dovid Stern':'rabbi-senior','Rabbi Meir Kaplan':'rabbi-greying','Rabbi Yaakov Feldman':'rabbi-dark-beard','Shloimy Weiss':'staff-office','Yossi Friedman':'rabbi-young','Avi Rosenberg':'staff-young','Chaim Perlow':'mashgiach-grey','Dovi Gluck':'mashgiach-auburn','Moshe Katzman':'mashgiach-black-beard','Naftali Berger':'mashgiach-stubble','Sruly Halpern':'mashgiach-glasses'};
-function pic(e,lg){return '<img alt="" src="photos/'+PHOTO[e.id]+(lg?'-lg':'')+'.webp">'}
-function estTile(e){return '<span class="thumb" aria-hidden="true">'+pic(e)+'</span>'}
+function estTile(e,size){var g=TYPEG[e.type]||['bldg','indigo'];return tile(g[0],g[1],size)}
 function face(n,size){var f=FACE[n];return '<span class="avatar'+(size?' '+size:'')+(f?' ph':'')+'" aria-hidden="true">'+(f?'<img alt="" src="photos/team-'+f+'.webp">':initials(n))+'</span>'}
 function kindTile(k){var g=KINDG[k]||['clip','blue'];return tile(g[0],g[1])}
 function hrs(t){var m=/(\d+):(\d+) (AM|PM)/.exec(t);return +m[1]%12+(m[3]==='PM'?12:0)+ +m[2]/60}
@@ -323,11 +321,11 @@ var V={
    '<div class="tools-row"><label class="field"><svg width="18" height="18" aria-hidden="true"><use href="#i-search"/></svg><input id="estq" type="search" placeholder="Search establishments" aria-label="Search establishments" value="'+esc(S.q)+'"></label></div>'+
    '<div class="chips" role="group" aria-label="Status">'+chip('All','All',E.length)+chip('Approved','Approved',c.ok,'ok')+chip('Flagged','Flagged',c.alert,'alert')+chip('Pending review','Pending Review',c.ask,'ask')+chip('On hold','On Hold',c.pause,'pause')+'</div>'+
    (list.length?'<div class="cards" style="margin-top:20px">'+list.map(function(e){
-     return '<button class="card est" data-go="est:'+e.id+'"><span class="cover" aria-hidden="true">'+pic(e)+'</span><div class="main"><div class="t">'+esc(e.name)+'</div><div class="d">'+esc(e.type+' · '+e.city)+'</div>'+stateHtml({s:e.st,t:e.stText,c:e.st==='alert'?'bad':''})+'</div></button>';
+     return '<button class="card est" data-go="est:'+e.id+'">'+estTile(e,'lg')+'<div class="main"><div class="t">'+esc(e.name)+'</div><div class="d">'+esc(e.type+' · '+e.city)+'</div>'+stateHtml({s:e.st,t:e.stText,c:e.st==='alert'?'bad':''})+'</div></button>';
    }).join('')+'</div>':'<div class="group" style="margin-top:20px"><div class="empty">No establishment matches. Clear the search or choose All.</div></div>');
  },
  est:function(){
-  var e=byId[S.id], plain=pages.est().replace('<h1 class="title">'+esc(e.name)+'</h1>','<div class="banner" aria-hidden="true">'+pic(e,true)+'</div><h1 class="title">'+esc(e.name)+'</h1>');
+  var e=byId[S.id], plain=hero(pages.est(),e.name,estTile(e,'xl'));
   if(S.tab!=='Overview') return plain;
   var cut=plain.indexOf('</div>',plain.indexOf('class="seg full"'))+6, head=plain.slice(0,cut);
   var needs=open(N.filter(function(n){return n.loc===e.id}).concat(LOCN[e.id]||[]));
