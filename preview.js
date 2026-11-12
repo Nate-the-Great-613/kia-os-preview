@@ -385,13 +385,13 @@ function shell(){
   $('#oldPane').hidden=!showOld; $('#newPane').hidden=!showNew;
   win.hidden=phone; $('#phoneWrap').hidden=!phone;
   if(phone&&phoneLook!==S.look){ $('#phoneWrap').innerHTML=S.look==='visual'?vPhoneHtml():phoneHtml(); phoneLook=S.look }
-  $('#newH').textContent=(S.look==='visual'?'Gallery':'Essentials')+': try the buttons and rows';
+  $('#newH').textContent=(S.look==='visual'?'Aurora':'Clarity')+': try the buttons and rows';
   $('#oldWin').hidden=phone; $('#oldPhoneWrap').hidden=!phone;
   $('#oldH').textContent=phone?'Current System: a picture of the real screen':'Current System: a picture of the real screen, scroll inside it';
   var img=$('#oldImg'), src='old/'+OLD[S.route]+'.jpg';
   if(img.getAttribute('src')!==src){ img.setAttribute('src',src); $('#shot').scrollTop=0 }
   img.alt='Screenshot of the current system: '+S.route;
-  $('#note').innerHTML=NOTE[phone?'phone':S.route]+(S.look==='visual'&&S.mode!=='old'?' <b>Gallery</b> holds the same information as Essentials, shown in a more visual way.':'');
+  $('#note').innerHTML=NOTE[phone?'phone':S.route]+(S.look==='visual'&&S.mode!=='old'?' <b>Aurora</b> holds the same information as Clarity, shown in a more visual way.':'');
   [['devOffice',!phone],['devPhone',phone],['modeNew',showNew&&S.look!=='visual'],['modeVis',showNew&&S.look==='visual'],['modeOld',S.mode==='old']].forEach(function(x){$('#'+x[0]).setAttribute('aria-pressed',x[1])});
   $('#noteBox').hidden=!showOld; $('#modeBoth').checked=both; $('#modeBoth').disabled=!showNew; $('#cmpWrap').style.visibility=showNew?'':'hidden';
 }
